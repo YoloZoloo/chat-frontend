@@ -1,5 +1,5 @@
-import { Button, Col, Form, Input, Row } from 'antd';
-import React, { useEffect, useState } from 'react';
+import { Button, Col, Form, Input, List, Row } from 'antd';
+import React, { useEffect, useRef, useState } from 'react';
 import 'antd/dist/antd.css';
 import './Chat.css';
 import { Breadcrumb, Layout, Menu } from 'antd';
@@ -13,6 +13,7 @@ const websocket = new WebSocket(BASE_WEBSOCKET_URL);
 
 const Chat = () => {
   const NOT_SELECTED = -1;
+  const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigator = useNavigate();
   let token = localStorage.getItem('token');
   const name = localStorage.getItem('name');
@@ -30,6 +31,7 @@ const Chat = () => {
 
   useEffect(() => {
     setPrevMessages(messages);
+    scrollToLastMessage();
   }, [messages]);
 
   useEffect(() => {
@@ -150,6 +152,7 @@ const Chat = () => {
       const newList = prevMessages.concat(msg);
       setMessages(newList);
     }
+    // scrollToLastMessage();
   }
 
   websocket.onclose = () => {
@@ -163,8 +166,13 @@ const Chat = () => {
     websocket.close();
   }
 
+  const scrollToLastMessage = () => {
+    console.log("scrolling");
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
+  }
+
   // rendering part
-  let loginState = localStorage.getItem("isLoggedIn");
+  const loginState = localStorage.getItem("isLoggedIn");
   if (loginState !== '1') {
     return (
       <Navigate to="/" />
@@ -174,6 +182,7 @@ const Chat = () => {
     <Layout
       style={{
         minHeight: '100vh',
+        maxHeight: '100vh'
       }}
     >
       <Sider collapsible collapsed={collapsed} onCollapse={(value) => setCollapsed(value)}>
@@ -221,17 +230,22 @@ const Chat = () => {
             <Breadcrumb.Item>Hello, {name}!</Breadcrumb.Item>
           </Breadcrumb>
           <div className="chat-box">
-            {messages?.map((elem: any, index: number) =>
-              <li className='message' key={index}>
-                {elem.dateName} - {elem.message}
-              </li>)}
+            <List
+              id="scroll-list"
+              size="large"
+              dataSource={messages}
+              style={{ border: 0, zIndex: 1 }}
+              renderItem={(message: any) => <List.Item>{message.dateName} - {message.message}</List.Item>}
+            />
+            <div style={{ float: "left", clear: "both" }} ref={messagesEndRef} />
           </div>
         </Content>
         <Footer
           style={{
             textAlign: 'center',
             paddingBottom: '0px',
-            height: '72px'
+            height: '72px',
+            zIndex: 2,
           }}
         >
           <Form onFinish={sendChat}>
