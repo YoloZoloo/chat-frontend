@@ -9,7 +9,6 @@ import { BASE_WEBSOCKET_URL } from '../env';
 import { Navigate, useNavigate } from 'react-router-dom';
 
 const { Content, Footer, Sider } = Layout;
-const websocket = new WebSocket(BASE_WEBSOCKET_URL);
 
 const Chat = () => {
   const NOT_SELECTED = -1;
@@ -18,7 +17,9 @@ const Chat = () => {
   let token = localStorage.getItem('token');
   const name = localStorage.getItem('name');
   const uniqID = localStorage.getItem('uniqID');
+  const [form] = Form.useForm();
 
+  const [websocket, setWSClient] = useState<WebSocket>();
   const [isLoading, setLoading] = useState(true);
   const [collapsed, setCollapsed] = useState(false);
   const [roomIDs, setRoomID] = useState([]);
@@ -28,7 +29,9 @@ const Chat = () => {
   const [peerID, setPeerID] = useState(Number);
   const [currentChatRoom, setChatRoom] = useState(Number);
 
-
+  useEffect(() => {
+    setWSClient(new WebSocket(BASE_WEBSOCKET_URL));
+  }, []);
   useEffect(() => {
     setPrevMessages(messages);
     scrollToLastMessage();
@@ -130,44 +133,48 @@ const Chat = () => {
   }
 
   const sendChat = (value: any) => {
+    if (value.message === '') {
+      return
+    }
     let postData = JSON.stringify({
       connect: false, senderID: uniqID,
       chatroom: currentChatRoom, message: value.message, name: name,
       peerID: peerID
     });
-    websocket.send(postData);
+    if (websocket !== undefined) {
+      websocket.send(postData)
+    };
+    form.setFieldValue("message", '');
   }
 
-  websocket.onopen = () => {
-    websocket.send(JSON.stringify({ connect: true, user_id: uniqID }));
-  };
-
-  websocket.onmessage = (message) => {
-    const msg = JSON.parse(message.data);
-    console.log(msg);
-    console.log(msg.peerID);
-    console.log(peerID);
-    console.log(currentChatRoom);
-    if ((peerID == msg.senderID || peerID == msg.peerID) && currentChatRoom == msg.room) {
-      const newList = prevMessages.concat(msg);
-      setMessages(newList);
-    }
-    // scrollToLastMessage();
-  }
-
-  websocket.onclose = () => {
-    setTimeout(function () {
+  if (websocket !== undefined) {
+    websocket.onopen = () => {
       websocket.send(JSON.stringify({ connect: true, user_id: uniqID }));
-    }, 1000);
-  }
+    };
 
-  websocket.onerror = (err) => {
-    console.error('Socket encountered error: ', err, 'Closing socket');
-    websocket.close();
+    websocket.onmessage = (message) => {
+      const msg = JSON.parse(message.data);
+      console.log(msg);
+      console.log(msg.peerID);
+      console.log(peerID);
+      console.log(currentChatRoom);
+      if ((peerID == msg.senderID || peerID == msg.peerID) && currentChatRoom == msg.room) {
+        const newList = prevMessages.concat(msg);
+        setMessages(newList);
+      }
+    }
+    websocket.onclose = () => {
+      setTimeout(function () {
+        websocket.send(JSON.stringify({ connect: true, user_id: uniqID }));
+      }, 1000);
+    }
+    websocket.onerror = (err) => {
+      console.error('Socket encountered error: ', err, 'Closing socket');
+      websocket.close();
+    }
   }
 
   const scrollToLastMessage = () => {
-    console.log("scrolling");
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }
 
@@ -248,7 +255,7 @@ const Chat = () => {
             zIndex: 2,
           }}
         >
-          <Form onFinish={sendChat}>
+          <Form form={form} onFinish={sendChat}>
             <Row>
               <Col span={21}>
                 <Form.Item name={"message"}>
