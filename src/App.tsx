@@ -3,6 +3,7 @@ import React from 'react';
 import { Route, Routes } from 'react-router-dom';
 import Login from './Login/Login';
 import Chat from './Chat/Chat';
+import Register from './User/Register'
 // import { createStore } from 'redux';
 // import reducer from './reducers/reducer';
 
@@ -19,6 +20,7 @@ const App = () => {
   return (
     <Routes>
       <Route path="/" element={<Login />} />
+      <Route path="/register" element={<Register />} />
       <Route path="/chat" element={<Chat />} />
     </Routes>
   );

@@ -3,7 +3,7 @@ import './Login.css';
 import { Form, Input, Button, Col, Row } from 'antd';
 import axios from 'axios';
 import { BASE_URL } from '../env';
-import { Navigate, useNavigate } from "react-router-dom";
+import { Navigate, useNavigate, Link } from "react-router-dom";
 
 const Login = () => {
   const navigator = useNavigate();
@@ -77,6 +77,7 @@ const Login = () => {
             Sign in
           </Button>
         </Form.Item>
+        <Link to="/register"> Sign Up </Link>
       </Form>
     </div>
   );
