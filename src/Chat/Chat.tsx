@@ -29,7 +29,11 @@ const Chat = () => {
   const [peerID, setPeerID] = useState(Number);
   const [currentChatRoom, setChatRoom] = useState(Number);
 
+
   useEffect(() => {
+    if (BASE_WEBSOCKET_URL === undefined) {
+      throw Error
+    }
     setWSClient(new WebSocket(BASE_WEBSOCKET_URL));
   }, []);
   useEffect(() => {
