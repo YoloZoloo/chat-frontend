@@ -10,13 +10,20 @@ import { Navigate, useNavigate } from 'react-router-dom';
 
 const { Content, Footer, Sider } = Layout;
 
+
+interface MsgInfo {
+  messageID: number,
+  message: string,
+
+}
+
 const Chat = () => {
   const NOT_SELECTED = -1;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigator = useNavigate();
   let token = localStorage.getItem('token');
   const name = localStorage.getItem('name');
-  const uniqID = localStorage.getItem('uniqID');
+  const uniqID = Number(localStorage.getItem('uniqID'));
   const [form] = Form.useForm();
 
   const [websocket, setWSClient] = useState<WebSocket>();
@@ -39,6 +46,7 @@ const Chat = () => {
   useEffect(() => {
     setPrevMessages(messages);
     scrollToLastMessage();
+    console.log(messages);
   }, [messages]);
 
   useEffect(() => {
@@ -153,23 +161,24 @@ const Chat = () => {
 
   if (websocket !== undefined) {
     websocket.onopen = () => {
-      websocket.send(JSON.stringify({ connect: true, user_id: uniqID }));
+      console.log(JSON.stringify({ connect: true, senderID: uniqID }));
+      websocket.send(JSON.stringify({ connect: true, senderID: uniqID }));
     };
 
     websocket.onmessage = (message) => {
       const msg = JSON.parse(message.data);
-      console.log(msg);
+      console.log("received msg", msg);
       console.log(msg.peerID);
       console.log(peerID);
       console.log(currentChatRoom);
-      if ((peerID == msg.senderID || peerID == msg.peerID) && currentChatRoom == msg.room) {
+      if ((peerID == msg.senderID || peerID == msg.peerID) && currentChatRoom == msg.chatroom) {
         const newList = prevMessages.concat(msg);
         setMessages(newList);
       }
     }
     websocket.onclose = () => {
       setTimeout(function () {
-        websocket.send(JSON.stringify({ connect: true, user_id: uniqID }));
+        websocket.send(JSON.stringify({ connect: true, senderID: uniqID }));
       }, 1000);
     }
     websocket.onerror = (err) => {
