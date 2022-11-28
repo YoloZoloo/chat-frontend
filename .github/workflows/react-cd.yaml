@@ -16,7 +16,7 @@ jobs:
       - name: Set up go
         uses: actions/setup-node@v3
         with:
-          go-version: 1.19
+          node-version: 16.13
 
       - name: Create .env
         run: |
@@ -41,4 +41,4 @@ jobs:
           chmod 600 ./ssh-key.pem
           eval $(ssh-agent)
           ssh-add ./ssh-key.pem
-          scp -o StrictHostKeyChecking=no ./build/* "$USER"@"$HOST":/var/www/$HOST/html
+          scp -o StrictHostKeyChecking=no -r ./build/* "$USER"@"$HOST":/var/www/$HOST/html
