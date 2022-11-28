@@ -9,8 +9,8 @@ jobs:
     if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
     env:
-      HOST: ${{ secrets.CHAT_BACKEND_HOST }}
-      USER: ${{ secrets.CHAT_BACKEND_HOST_USER }}
+      HOST: ${{ secrets.CHAT_FRONTEND_HOST }}
+      USER: ${{ secrets.CHAT_FRONTEND_HOST_USER }}
     steps:
       - uses: actions/checkout@v3
       - name: Set up go
@@ -37,8 +37,8 @@ jobs:
           echo "${{ secrets.DB_PORT }}" >> .env
           echo "${{ secrets.DB_NAME }}" >> .env
           echo "${{ secrets.DB_SIGN_KEY }}" >> .env
-          echo "${{ secrets.CHAT_BACKEND_SSH_KEY }}" > ssh-key.pem
+          echo "${{ secrets.CHAT_FRONTEND_SSH_KEY }}" > ssh-key.pem
           chmod 600 ./ssh-key.pem
           eval $(ssh-agent)
           ssh-add ./ssh-key.pem
-          scp -o StrictHostKeyChecking=no ./build/* "$USER"@"$HOST":/var/www/www.codeatyolo.link/html
+          scp -o StrictHostKeyChecking=no ./build/* "$USER"@"$HOST":/var/www/$HOST/html
