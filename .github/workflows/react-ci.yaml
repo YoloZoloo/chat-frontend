@@ -1,0 +1,26 @@
+name: Chat front end CI
+
+on:
+  pull_request:
+    branches: main
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16.13
+      - name: Create .env
+        run: |
+          echo REACT_APP_BASE_URL=${{ secrets.REACT_APP_BASE_URL }} > ./.env
+          echo REACT_APP_BASE_WEBSOCKET_URL=${{ secrets.REACT_APP_BASE_WEBSOCKET_URL }} >> ./.env
+      - name: install yarn
+        run: npm install --global yarn
+      - name: install dependencies
+        run: |
+          yarn install
+      - name: build
+        run: |
+          yarn build
