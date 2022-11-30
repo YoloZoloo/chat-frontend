@@ -1,15 +1,13 @@
 import React from 'react';
 import './Register.css';
 import { Form, Input, Button, Col, Row } from 'antd';
-import axios from 'axios';
-import { BASE_URL } from '../env';
 import { Navigate, useNavigate, Link } from "react-router-dom";
+import { request } from '../axios/axios';
 
 const Register = () => {
     const navigator = useNavigate();
     const tryRegister = (values: any) => {
-        console.log("Base_url: ", BASE_URL);
-        axios.post(BASE_URL + '/api/register', {
+        request.post('/api/register', {
             user_id: values.user_id,
             password: values.password,
             firstName: values.firstname,

@@ -3,10 +3,10 @@ import React, { useEffect, useRef, useState } from 'react';
 import 'antd/dist/antd.css';
 import './Chat.css';
 import { Breadcrumb, Layout, Menu } from 'antd';
-import axios from 'axios';
-import { BASE_URL } from '../env';
+import { request } from '../axios/axios';
 import { BASE_WEBSOCKET_URL } from '../env';
 import { Navigate, useNavigate } from 'react-router-dom';
+import store from "../reducers/reducer"
 
 const { Content, Footer, Sider } = Layout;
 
@@ -29,9 +29,11 @@ const Chat = () => {
   const NOT_SELECTED = -1;
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const navigator = useNavigate();
-  let token = localStorage.getItem('token');
-  const name = localStorage.getItem('name');
-  const uniqID = Number(localStorage.getItem('uniqID'));
+  const userState: any = store.getState();
+  console.log("userState:", userState.id);
+  let token = userState.token;
+  const name = userState.name;
+  const uniqID = userState.id;
   const [form] = Form.useForm();
 
   const [websocket, setWSClient] = useState<WebSocket>();
@@ -61,7 +63,7 @@ const Chat = () => {
     if (token === null) {
       token = "";
     }
-    axios.get(BASE_URL + "/api/chatscreen/getChatRooms", {
+    request.get("/api/chatscreen/getChatRooms", {
       headers: {
         Authorization: token
       }
@@ -69,13 +71,13 @@ const Chat = () => {
       .then(response => {
         const RoomID = response.data.grouproom_id;
         const privRoomID = response.data.privateroom_id;
-        if (privChatIDs != null) {
+        if (privChatIDs !== null) {
           setprivChatIDs(privRoomID);
         }
         else {
           setprivChatIDs([]);
         }
-        if (RoomID != null) {
+        if (RoomID !== null) {
           setRoomID(RoomID);
         }
         else {
@@ -86,13 +88,15 @@ const Chat = () => {
       )
       .catch(err => {
         console.log(err);
-        localStorage.clear();
+        store.dispatch({ type: "setAsLoggedOut" });
+        // localStorage.clear();
         navigator("/");
       });
   }, [isLoading]);
 
   const logOut = () => {
-    localStorage.clear();
+    store.dispatch({ type: "setAsLoggedOut" });
+    // localStorage.clear();
     navigator("/");
   }
 
@@ -103,7 +107,7 @@ const Chat = () => {
       token = "";
     }
     const data = JSON.stringify({ room: room_id })
-    axios.post(BASE_URL + "/api/chatscreen/getGroupChat", data, {
+    request.post("/api/chatscreen/getGroupChat", data, {
       headers: {
         "Authorization": token
       },
@@ -119,7 +123,8 @@ const Chat = () => {
       )
       .catch(err => {
         // show the error
-        localStorage.clear();
+        store.dispatch({ type: "setAsLoggedOut" });
+        // localStorage.clear();
         console.log(err);
       });
   }
@@ -131,7 +136,7 @@ const Chat = () => {
       token = "";
     }
     const data = JSON.stringify({ peer_id: peerID })
-    axios.post(BASE_URL + "/api/chatscreen/getPrivateChat", data, {
+    request.post("/api/chatscreen/getPrivateChat", data, {
       headers: {
         "Authorization": token
       },
@@ -147,7 +152,7 @@ const Chat = () => {
       )
       .catch(err => {
         // show the error
-        localStorage.clear();
+        store.dispatch({ type: "setAsLoggedOut" });
         console.log(err);
       });
   }
@@ -195,7 +200,7 @@ const Chat = () => {
   }
 
   // rendering part
-  const loginState = localStorage.getItem("isLoggedIn");
+  const loginState = userState.loggedIn;
   if (loginState !== '1') {
     return (
       <Navigate to="/" />
