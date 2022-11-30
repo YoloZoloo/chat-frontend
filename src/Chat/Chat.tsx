@@ -11,10 +11,18 @@ import { Navigate, useNavigate } from 'react-router-dom';
 const { Content, Footer, Sider } = Layout;
 
 
-interface MsgInfo {
-  messageID: number,
+interface Msg {
+  message_id: number,
   message: string,
+  peer_id: Number,
+  sender_id: Number,
+  dateName: string,
+  chatroom: Number
+}
 
+interface PrivateChat {
+  id: Number,
+  user_id: Number
 }
 
 const Chat = () => {
@@ -27,14 +35,14 @@ const Chat = () => {
   const [form] = Form.useForm();
 
   const [websocket, setWSClient] = useState<WebSocket>();
-  const [isLoading, setLoading] = useState(true);
-  const [collapsed, setCollapsed] = useState(false);
-  const [roomIDs, setRoomID] = useState([]);
-  const [privChatIDs, setprivChatIDs] = useState([]);
-  const [messages, setMessages] = useState([]);
-  const [prevMessages, setPrevMessages] = useState([]);
-  const [peerID, setPeerID] = useState(Number);
-  const [currentChatRoom, setChatRoom] = useState(Number);
+  const [isLoading, setLoading] = useState<boolean>(true);
+  const [collapsed, setCollapsed] = useState<boolean>(false);
+  const [roomIDs, setRoomID] = useState<Number[]>([]);
+  const [privChatIDs, setprivChatIDs] = useState<Number[]>([]);
+  const [messages, setMessages] = useState<Msg[]>([]);
+  const [prevMessages, setPrevMessages] = useState<Msg[]>([]);
+  const [peerID, setPeerID] = useState<Number>();
+  const [currentChatRoom, setChatRoom] = useState<Number>();
 
 
   useEffect(() => {
@@ -122,7 +130,7 @@ const Chat = () => {
     if (token === null) {
       token = "";
     }
-    const data = JSON.stringify({ peer: peerID })
+    const data = JSON.stringify({ peer_id: peerID })
     axios.post(BASE_URL + "/api/chatscreen/getPrivateChat", data, {
       headers: {
         "Authorization": token
@@ -149,9 +157,9 @@ const Chat = () => {
       return
     }
     let postData = JSON.stringify({
-      connect: false, senderID: uniqID,
+      connect: false, sender_id: uniqID,
       chatroom: currentChatRoom, message: value.message, name: name,
-      peerID: peerID
+      peer_id: Number(peerID)
     });
     if (websocket !== undefined) {
       websocket.send(postData)
@@ -161,18 +169,13 @@ const Chat = () => {
 
   if (websocket !== undefined) {
     websocket.onopen = () => {
-      console.log(JSON.stringify({ connect: true, senderID: uniqID }));
-      websocket.send(JSON.stringify({ connect: true, senderID: uniqID }));
+      websocket.send(JSON.stringify({ connect: true, sender_id: uniqID }));
     };
 
     websocket.onmessage = (message) => {
-      const msg = JSON.parse(message.data);
-      console.log("received msg", msg);
-      console.log(msg.peerID);
-      console.log(peerID);
-      console.log(currentChatRoom);
-      if ((peerID == msg.senderID || peerID == msg.peerID) && currentChatRoom == msg.chatroom) {
-        const newList = prevMessages.concat(msg);
+      const msg: Msg = JSON.parse(message.data);
+      if ((peerID == msg.sender_id || peerID == msg.peer_id) && currentChatRoom == msg.chatroom) {
+        const newList: Msg[] = prevMessages.concat(msg);
         setMessages(newList);
       }
     }

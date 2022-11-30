@@ -3,6 +3,8 @@ name: Chat front end CI
 on:
   pull_request:
     branches: main
+  workflow_dispatch:
+    branches: main
 jobs:
   build:
     runs-on: ubuntu-latest
