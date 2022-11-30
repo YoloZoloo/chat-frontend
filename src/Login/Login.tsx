@@ -1,26 +1,29 @@
 import React from 'react';
 import './Login.css';
 import { Form, Input, Button, Col, Row } from 'antd';
-import axios from 'axios';
-import { BASE_URL } from '../env';
 import { Navigate, useNavigate, Link } from "react-router-dom";
+import store, { UserState } from "../reducers/reducer"
+import { initUser } from "../actions/actions"
+import { request } from '../axios/axios';
 
 const Login = () => {
   const navigator = useNavigate();
+  const userState: any = store.getState();
   const tryLogin = (values: any) => {
-    const user_id = values.user_id;
+    const username = values.username;
     const pass = values.password;
-    console.log("Base_url: ", BASE_URL);
-    axios.post(BASE_URL + '/api/login', {
-      user_id: user_id,
+    request.post('/api/login', {
+      user_id: username,
       password: pass
     }).then(response => {
-      //here set token, unique id and user_id, password;
-      localStorage.setItem('userName', user_id);
-      localStorage.setItem('name', response.data.userName);
-      localStorage.setItem('uniqID', response.data.uniqID);
-      localStorage.setItem('token', response.data.token);
-      localStorage.setItem('isLoggedIn', "1");
+      const data: UserState = {
+        id: response.data.uniqID,
+        name: response.data.userName,
+        userName: username,
+        token: response.data.token,
+        loggedIn: "1",
+      }
+      store.dispatch(initUser(data));
       console.log(response.data);
       navigator(`/chat`);
 
@@ -29,7 +32,7 @@ const Login = () => {
         console.log(error);
       });
   }
-  if (localStorage.getItem('isLoggedIn') === '1') {
+  if (userState.loggedIn === '1') {
     return (
       <Navigate to="/chat" />
     );
@@ -43,7 +46,7 @@ const Login = () => {
           </Col>
           <Col span={18}>
             <Form.Item
-              name={'user_id'}
+              name={'username'}
               rules={[
                 {
                   required: true,
