@@ -1,12 +1,13 @@
 name: Chat front end CD
-on:
-  pull_request:
-    types:
-        - closed
-    branches: main
+on: 
+  workflow_dispatch:
+    inputs:
+      git-ref:
+        description: Git Ref (Optional)    
+        required: false
 jobs:
   deploy:
-    if: github.event.pull_request.merged == true
+    name: Deploy To Digital Ocean
     runs-on: ubuntu-latest
     env:
       HOST: ${{ secrets.CHAT_FRONTEND_HOST }}
